@@ -1,4 +1,5 @@
 resource "google_compute_instance" "secure_instance" {
+  project = var.project_id
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
