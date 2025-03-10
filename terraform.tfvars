@@ -1,6 +1,6 @@
 project_id = "durable-isotope-431909-m9"
 region = "us-central1"
-zone = "us-central1-c"
+zone = "us-central1-b"
 machine_type = "e2-small"
 subnetwork = "projects/durable-isotope-431909-m9/regions/us-central1/subnetworks/default"
 service_account_email = "805361334777-compute@developer.gserviceaccount.com"
