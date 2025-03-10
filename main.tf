@@ -8,7 +8,7 @@ resource "google_compute_instance" "secure_instance" {
     auto_delete = true
     initialize_params {
       image = "projects/debian-cloud/global/images/debian-12-bookworm-v20250212"
-      size  = 20  # Increased disk size for better performance
+      size  = 10  # Increased disk size for better performance
       type  = "pd-balanced"
     }
   }
