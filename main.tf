@@ -1,3 +1,17 @@
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.0"
+    }
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}
+
 resource "google_compute_instance" "secure_instance" {
   project      = var.project_id
   name         = var.instance_name
@@ -59,15 +73,14 @@ resource "google_compute_instance" "secure_instance" {
     sudo usermod -aG docker $(whoami)
 
     echo "Deploying Harness Delegate using Docker..."
-    docker run --cpus=1 --memory=2g \
-      -e DELEGATE_NAME="gcp-delegate" \
+    docker run  --cpus=1 --memory=2g \
+      -e DELEGATE_NAME=docker-delegate \
       -e NEXT_GEN="true" \
       -e DELEGATE_TYPE="DOCKER" \
-      -e ACCOUNT_ID="your-account-id" \
-      -e DELEGATE_TOKEN="your-delegate-token" \
-      -e DELEGATE_TAGS="gcp" \
-      -e MANAGER_HOST_AND_PORT="https://app.harness.io" \
-      harness/delegate:25.03.85403
+      -e ACCOUNT_ID=axO8S93qRGqqf1tlBaonnQ \
+      -e DELEGATE_TOKEN=OWYyNDYzMjVlODVkZTJlY2RiZmFlZjM2NmEzMDk3N2Y= \
+      -e DELEGATE_TAGS="" \
+      -e MANAGER_HOST_AND_PORT=https://app.harness.io harness/delegate:25.03.85403
   EOT
 
   labels = {
