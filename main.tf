@@ -8,8 +8,8 @@ resource "google_compute_instance" "secure_instance" {
     auto_delete = true
     initialize_params {
       image = "projects/debian-cloud/global/images/debian-12-bookworm-v20250212"
-      size  = 20  # Increased disk size for better performance
-      type  = "pd-ssd"  # Changed to SSD for faster I/O
+      size  = 20
+      type  = "pd-ssd"
     }
   }
 
@@ -42,21 +42,32 @@ resource "google_compute_instance" "secure_instance" {
   }
 
   metadata = {
-    enable-oslogin = "TRUE"  # Enforce OS Login for secure SSH access
+    enable-oslogin = "TRUE"
   }
 
   metadata_startup_script = <<EOT
     #!/bin/bash
-    sudo apt update -y && sudo apt install -y curl unzip
-    echo "Downloading Harness Delegate..."
-    curl -L -o harness-delegate.tar.gz "https://app.harness.io/storage/harness-download/delegate.tar.gz"
-    
-    echo "Extracting and Installing..."
-    mkdir /opt/harness-delegate && tar -xvzf harness-delegate.tar.gz -C /opt/harness-delegate
-    
-    echo "Starting Harness Delegate..."
-    cd /opt/harness-delegate
-    nohup ./start.sh > /var/log/harness-delegate.log 2>&1 &
+    set -e
+    exec > >(tee /var/log/startup-script.log) 2>&1
+
+    echo "Updating system packages..."
+    sudo apt update -y && sudo apt install -y curl unzip docker.io
+
+    echo "Enabling and starting Docker..."
+    sudo systemctl enable docker
+    sudo systemctl start docker
+    sudo usermod -aG docker $(whoami)
+
+    echo "Deploying Harness Delegate using Docker..."
+    docker run --cpus=1 --memory=2g \
+      -e DELEGATE_NAME="gcp-delegate" \
+      -e NEXT_GEN="true" \
+      -e DELEGATE_TYPE="DOCKER" \
+      -e ACCOUNT_ID="your-account-id" \
+      -e DELEGATE_TOKEN="your-delegate-token" \
+      -e DELEGATE_TAGS="gcp" \
+      -e MANAGER_HOST_AND_PORT="https://app.harness.io" \
+      harness/delegate:25.03.85403
   EOT
 
   labels = {
@@ -75,7 +86,6 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = ["YOUR_IP/32"]  # Restrict SSH to your IP
+  source_ranges = ["YOUR_IP/32"]
   target_tags   = ["harness-delegate"]
 }
-
