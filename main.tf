@@ -99,6 +99,6 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = ["YOUR_IP/32"]
+  source_ranges = ["0.0.0.0/0"]
   target_tags   = ["harness-delegate"]
 }
