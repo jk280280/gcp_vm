@@ -34,5 +34,5 @@ variable "service_account_email" {
 variable "instance_name" {
   description = "Name of the Compute instance"
   type        = string
-  default     = "secure-instance"
+  default     = "harness-delegate"
 }
