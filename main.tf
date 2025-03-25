@@ -1,5 +1,5 @@
 resource "google_compute_instance" "secure_instance" {
-  project = var.project_id
+  project      = var.project_id
   name         = var.instance_name
   machine_type = var.machine_type
   zone         = var.zone
@@ -8,8 +8,8 @@ resource "google_compute_instance" "secure_instance" {
     auto_delete = true
     initialize_params {
       image = "projects/debian-cloud/global/images/debian-12-bookworm-v20250212"
-      size  = 10  # Increased disk size for better performance
-      type  = "pd-balanced"
+      size  = 20  # Increased disk size for better performance
+      type  = "pd-ssd"  # Changed to SSD for faster I/O
     }
   }
 
@@ -32,37 +32,36 @@ resource "google_compute_instance" "secure_instance" {
     scopes = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring.write"
-    ]  # Limited IAM permissions for security
+    ]
   }
 
   shielded_instance_config {
     enable_integrity_monitoring = true
-    enable_secure_boot          = true  # Secure boot enabled
+    enable_secure_boot          = true
     enable_vtpm                 = true
   }
+
+  metadata = {
+    enable-oslogin = "TRUE"  # Enforce OS Login for secure SSH access
+  }
+
+  metadata_startup_script = <<EOT
+    #!/bin/bash
+    sudo apt update -y && sudo apt install -y curl unzip
+    echo "Downloading Harness Delegate..."
+    curl -L -o harness-delegate.tar.gz "https://app.harness.io/storage/harness-download/delegate.tar.gz"
+    
+    echo "Extracting and Installing..."
+    mkdir /opt/harness-delegate && tar -xvzf harness-delegate.tar.gz -C /opt/harness-delegate
+    
+    echo "Starting Harness Delegate..."
+    cd /opt/harness-delegate
+    nohup ./start.sh > /var/log/harness-delegate.log 2>&1 &
+  EOT
 
   labels = {
     environment = "production"
   }
 
-  tags = ["http-server", "https-server"]
-}
-
-module "ops_agent_policy" {
-  source        = "github.com/terraform-google-modules/terraform-google-cloud-operations/modules/ops-agent-policy"
-  project       = var.project_id
-  zone          = var.zone
-  assignment_id = "goog-ops-agent-secure"
-  agents_rule = {
-    package_state = "installed"
-    version       = "latest"
-  }
-  instance_filter = {
-    all = false
-    inclusion_labels = [{
-      labels = {
-        environment = "production"
-      }
-    }]
-  }
+  tags = ["harness-delegate"]
 }
