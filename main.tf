@@ -65,3 +65,17 @@ resource "google_compute_instance" "secure_instance" {
 
   tags = ["harness-delegate"]
 }
+
+resource "google_compute_firewall" "allow_ssh" {
+  name    = "allow-ssh"
+  network = "default"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+
+  source_ranges = ["YOUR_IP/32"]  # Restrict SSH to your IP
+  target_tags   = ["harness-delegate"]
+}
+
