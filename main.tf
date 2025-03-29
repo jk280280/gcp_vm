@@ -79,7 +79,7 @@ resource "google_compute_instance" "secure_instance" {
     sudo usermod -aG docker $(whoami)
 
     echo "Deploying Harness Delegate using Docker..."
-    docker run --cpus=1 --memory=2g \
+    docker run  --cpus=1 --memory=2g \
       -e DELEGATE_NAME=docker-delegate \
       -e NEXT_GEN="true" \
       -e DELEGATE_TYPE="DOCKER" \
