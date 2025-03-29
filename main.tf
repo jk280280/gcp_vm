@@ -84,7 +84,7 @@ resource "google_compute_instance" "secure_instance" {
       -e NEXT_GEN="true" \
       -e DELEGATE_TYPE="DOCKER" \
       -e ACCOUNT_ID=axO8S93qRGqqf1tlBaonnQ \
-      -e DELEGATE_TOKEN=OWYyNDYzMjVlODVkZTJlY2RiZmFlZjM2NmEzMDk3N2Y= \
+      -e DELEGATE_TOKEN=YmE3N2M2NGMyOTQyYmFjMDY1YjhiNDUwNDUxYmY2ZjQ= \
       -e DELEGATE_TAGS="" \
       -e MANAGER_HOST_AND_PORT=https://app.harness.io harness/delegate:25.03.85403
   EOF
