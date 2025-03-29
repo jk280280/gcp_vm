@@ -65,7 +65,39 @@ resource "google_compute_instance" "secure_instance" {
     exec > >(tee /var/log/startup-script.log) 2>&1
 
     echo "Updating system packages..."
-    sudo apt update -y && sudo apt install -y curl unzip docker.io
+    sudo apt update -y && sudo apt install -y curl unzip docker.io wget
+
+    echo "Installing OpenTofu..."
+    ARCH=$(uname -m)
+    if [ "$ARCH" == "x86_64" ]; then
+      TOFU_ARCH="linux_amd64"
+    elif [ "$ARCH" == "aarch64" ]; then
+      TOFU_ARCH="linux_arm64"
+    else
+      echo "Unsupported architecture: $ARCH"
+      exit 1
+    fi
+
+    TOFU_VERSION=$(curl -s https://api.github.com/repos/opentofu/opentofu/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+    if [ -z "$TOFU_VERSION" ]; then
+      echo "Failed to fetch OpenTofu version. Falling back to v1.9.0"
+      TOFU_VERSION="1.9.0"
+    fi
+
+    TOFU_URL="https://github.com/opentofu/opentofu/releases/download/${TOFU_VERSION}/tofu_${TOFU_ARCH}.zip"
+    echo "Downloading OpenTofu from $TOFU_URL..."
+    if wget "$TOFU_URL" -O tofu.zip; then
+      echo "Download successful. Extracting..."
+    else
+      echo "Failed to download OpenTofu. Exiting."
+      exit 1
+    fi
+
+    unzip tofu.zip
+    sudo mv tofu /usr/local/bin/tofu
+    sudo chmod +x /usr/local/bin/tofu
+    echo "OpenTofu installed successfully!"
+    tofu --version
 
     echo "Enabling and starting Docker..."
     sudo systemctl enable docker
