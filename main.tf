@@ -5,6 +5,10 @@ terraform {
       version = "~> 4.0"
     }
   }
+
+  backend "gcs" {
+    bucket = "state-hanress"
+  }
 }
 
 provider "google" {
@@ -59,41 +63,7 @@ resource "google_compute_instance" "secure_instance" {
     enable-oslogin = "TRUE"
   }
 
-  metadata_startup_script = <<EOF
-    #!/bin/bash
-    set -e
-    exec > >(tee /var/log/startup-script.log) 2>&1
-
-    echo "Updating system packages..."
-    sudo apt update -y && sudo apt install -y curl unzip docker.io
-
-    echo "Installing OpenTofu..."
-    curl -fsSL https://raw.githubusercontent.com/opentofu/opentofu/main/install.sh | sudo bash
-
-    echo "Verifying OpenTofu installation..."
-    tofu --version
-
-    echo "Enabling and starting Docker..."
-    sudo systemctl enable docker
-    sudo systemctl start docker
-    sudo usermod -aG docker $(whoami)
-
-    echo "Deploying Harness Delegate using Docker..."
-    docker run  --cpus=1 --memory=2g \
-      -e DELEGATE_NAME=docker-delegate \
-      -e NEXT_GEN="true" \
-      -e DELEGATE_TYPE="DOCKER" \
-      -e ACCOUNT_ID=axO8S93qRGqqf1tlBaonnQ \
-      -e DELEGATE_TOKEN=YmE3N2M2NGMyOTQyYmFjMDY1YjhiNDUwNDUxYmY2ZjQ= \
-      -e DELEGATE_TAGS="" \
-      -e MANAGER_HOST_AND_PORT=https://app.harness.io harness/delegate:25.03.85403
-  EOF
-
-  labels = {
-    environment = "production"
-  }
-
-  tags = ["harness-delegate"]
+  
 }
 
 resource "google_compute_firewall" "allow_ssh" {
@@ -105,6 +75,5 @@ resource "google_compute_firewall" "allow_ssh" {
     ports    = ["22"]
   }
 
-  source_ranges = ["0.0.0.0/0"]
-  target_tags   = ["harness-delegate"]
+  source_ranges = ["YOUR_PUBLIC_IP/32"]  # Replace with a trusted IP
 }
