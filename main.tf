@@ -7,6 +7,10 @@ terraform {
   }
 }
 
+ backend "gcs" {
+    bucket = "state-hanress"
+  }
+}
 provider "google" {
   project = var.project_id
   region  = var.region
