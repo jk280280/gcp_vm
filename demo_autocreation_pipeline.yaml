@@ -1,0 +1,38 @@
+pipeline:
+  name: demo_autocreation_pipeline
+  identifier: demo_autocreation_pipeline
+  projectIdentifier: Krishika_test_autocreation
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: custom
+        identifier: custom
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - step:
+                  type: ShellScript
+                  name: ShellScript_1
+                  identifier: ShellScript_1
+                  spec:
+                    shell: Bash
+                    executionTarget: {}
+                    source:
+                      type: Inline
+                      spec:
+                        script: |
+                          input_variable=<+pipeline.variables.input_variable>
+                          echo "the value is:$input_variable"
+                    environmentVariables: []
+                    outputVariables: []
+                  timeout: 10m
+        tags: {}
+  variables:
+    - name: input_variable
+      type: String
+      description: ""
+      required: false
+      value: <+input>
